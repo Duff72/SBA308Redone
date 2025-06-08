@@ -6,8 +6,8 @@ function getLearnerData(course, ag, submissions) {
     if (course.id === ag.course_id) {
       let res1 = func.dueYet(ag, submissions);
       let res2 = func.isLate(ag, res1);
-      let res3 = func.getResult(res2);
-      let result = func.refineResult(res3);
+      let result = func.getResult(res2);
+      //   let result = func.refineResult(res3);
       return result;
     } else {
       throw "Error - Assignments do not match course";

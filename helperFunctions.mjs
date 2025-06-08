@@ -44,57 +44,36 @@ function isLate(ag, ls) {
 // const checkOnTime = isLate(AssignmentGroup, submittedDueAssignments);
 
 function getResult(array) {
-  let result = [];
-  let student = 0;
-  let newArray = array.sort((a, b) => a.learner_id - b.learner_id);
-  //sort objects in array by learner id
-  for (let i = 0; i < newArray.length; i++) {
-    if (newArray[i].learner_id > student) {
-      //if this is a new student, create a new object in result array
-      result[i] = {
-        id: newArray[i].learner_id,
-        avg: null,
-        1: null,
-        2: null,
-        maxScore: newArray[i].maxScore,
-        total1: newArray[i].submission.score - newArray[i].latePenalty,
-        total2: null,
+  const results = {};
+
+  for (const entry of array) {
+    const learnerId = entry.learner_id;
+    const assignmentId = entry.assignment_id;
+    const score = entry.submission.score - entry.latePenalty;
+    const maxPoints = entry.submission.maxPoints;
+
+    if (!results[learnerId]) {
+      results[learnerId] = {
+        id: learnerId,
+        totalScore: 0,
+        totalMax: 0,
+        assignments: {},
       };
-      result[i][newArray[i].assignment_id] =
-        (newArray[i].submission.score - newArray[i].latePenalty) /
-        newArray[i].submission.maxPoints;
-      student = newArray[i].learner_id;
-    } else if ((newArray[i].learner_id = student)) {
-      // if same student, update result array
-      result[i] = null;
-      result[i - 1][newArray[i].assignment_id] =
-        (newArray[i].submission.score - newArray[i].latePenalty) /
-        newArray[i].submission.maxPoints;
-      result[i - 1].maxScore =
-        parseInt([newArray[i - 1].maxScore]) + parseInt([newArray[i].maxScore]);
-      result[i - 1].total2 =
-        newArray[i].submission.score - newArray[i].latePenalty;
-    } //[i-1] is a very inelegant way to do this but it's working. i'm sure this would cause problems with larger data sets
-  }
-  return result;
-}
+    }
 
-function refineResult(array) {
-  let filteredArray = array.filter((element) => element !== null);
-  let finalArray = [];
-  for (let i = 0; i < filteredArray.length; i++) {
-    filteredArray[i].avg =
-      (filteredArray[i].total1 + filteredArray[i].total2) /
-      filteredArray[i].maxScore;
-    finalArray[i] = {
-      id: filteredArray[i].id,
-      avg: filteredArray[i].avg,
-      1: filteredArray[i][1],
-      2: filteredArray[i][2],
+    results[learnerId].totalScore += score;
+    results[learnerId].totalMax += maxPoints;
+    results[learnerId].assignments[assignmentId] = score / maxPoints;
+  }
+
+  // Convert to array and format output
+  return Object.values(results).map((res) => {
+    return {
+      id: res.id,
+      avg: res.totalMax ? res.totalScore / res.totalMax : 0,
+      ...res.assignments,
     };
-  }
-
-  return finalArray;
+  });
 }
 
 export { dueYet, isLate, getResult, refineResult };
